@@ -115,7 +115,7 @@ Flujo **replicado exactamente del Selenium IDE**:
 ### 🔹 1. Crear entorno virtual
 ```bash
 python -m venv venv
-.venv/bin/activate      # Linux/Mac
+source venv/bin/activate      # Linux/Mac
 venv\Scripts\activate         # Windows
 ```
 ### 🔹 2. Instalar dependencias
