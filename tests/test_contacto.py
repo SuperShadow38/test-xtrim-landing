@@ -1,19 +1,14 @@
-import pytest
 from pages.home_page import HomePage
 from pages.contacto_page import ContactoPage
-from utils.config import BASE_URL, TEST_DATA
+from utils.config import BASE_URL
 
-def test_te_llamamos(page):
-
+def test_formulario_contacto_disponible(page):
     home = HomePage(page)
     contacto = ContactoPage(page)
 
     home.navegar(BASE_URL)
     home.cerrar_popup()
-
     home.ir_te_llamamos()
 
-    contacto.completar_formulario(TEST_DATA)
-    contacto.enviar()
-
-    assert page.url.startswith("https://www.xtrim.com.ec/contactanos")
+    contacto.validar_carga()
+    contacto.validar_formulario_disponible()

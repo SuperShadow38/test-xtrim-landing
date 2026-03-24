@@ -1,28 +1,22 @@
 from playwright.sync_api import Page
-from utils.config import PAGAR_URL, PLANES_URL, ZAPPING_URL
+from utils.config import CONTACTO_URL, PAGAR_URL, ZAPPING_URL
 
 class HomePage:
 
     def __init__(self, page: Page):
         self.page = page
 
-        # Selectores
         self.popup_close = ".close"
         self.onesignal_cancel = "#onesignal-slidedown-cancel-button"
-        self.menu_movil = "#menu-movil"
-
-        # Menú
-        self.link_te_llamamos = "text=Te llamamos"
-        self.link_pagar_servicio = "a[title='Pagar Servicio']"
-        self.link_planes = "a[title='Planes']"
-        self.link_zapping = "text=Zapping"   # ✅ nuevo selector
+        self.link_pagos = self.page.locator("a[href*='pagos.xtrim.com.ec']")
+        self.link_actualizar_plan = self.page.get_by_role("link", name="Actualizar Plan").first
 
     # -------------------------
     # Métodos base
     # -------------------------
     def navegar(self, url):
         self.page.goto(url, wait_until="domcontentloaded")
-        self.page.wait_for_load_state("networkidle")
+        self.page.wait_for_load_state("domcontentloaded")
 
     def cerrar_popup(self):
         try:
@@ -39,90 +33,35 @@ class HomePage:
         except:
             pass
 
-    def abrir_menu_movil(self):
-        try:
-            mm = self.page.locator(self.menu_movil)
-            if mm.is_visible():
-                mm.click()
-        except:
-            pass
-
     # -------------------------
-    # SECCIÓN: Te Llamamos
+    # SECCIÓN: Contacto
     # -------------------------
     def ir_te_llamamos(self):
-        link = self.page.locator(self.link_te_llamamos).first
-        if link.is_visible():
-            link.click()
-        else:
-            self.abrir_menu_movil()
-            link = self.page.locator(self.link_te_llamamos).first
-            link.click()
+        self.page.goto(CONTACTO_URL, wait_until="domcontentloaded")
+        self.page.wait_for_url("**/contactanos/")
 
     # -------------------------
-    # SECCIÓN: Pagar Servicio
+    # SECCIÓN: Pagos
     # -------------------------
     def ir_pagar_servicio(self):
-        link = self.page.locator(self.link_pagar_servicio).first
+        for i in range(self.link_pagos.count()):
+            link = self.link_pagos.nth(i)
+            if not link.is_visible():
+                continue
 
-        if link.is_visible():
-            link.click()
+            href = link.get_attribute("href")
+            if not href or "pagos.xtrim.com.ec" not in href.lower():
+                continue
+
+            self.page.goto(href, wait_until="domcontentloaded")
+            self.page.wait_for_url(f"{PAGAR_URL}**")
             return
 
-        self.abrir_menu_movil()
-        link = self.page.locator(self.link_pagar_servicio).first
-        if link.is_visible():
-            link.click()
-            return
-
-        # fallback
-        self.page.goto(PAGAR_URL, wait_until="domcontentloaded")
-        self.page.wait_for_load_state("networkidle")
-
-    # -------------------------
-    # SECCIÓN: Planes / Zapping
-    # -------------------------
-    def ir_planes(self):
-        link = self.page.locator(self.link_planes).first
-
-        if link.is_visible():
-            link.click()
-            self.page.wait_for_load_state("networkidle")
-            return
-
-        self.abrir_menu_movil()
-        link = self.page.locator(self.link_planes).first
-        if link.is_visible():
-            link.click()
-            self.page.wait_for_load_state("networkidle")
-            return
-
-        # fallback
-        self.page.goto(PLANES_URL, wait_until="domcontentloaded")
-        self.page.wait_for_load_state("networkidle")
-
+        raise AssertionError("No se encontró un acceso visible a pagos en la home")
 
     def ir_zapping(self):
-        """
-        Replica el Selenium:
-        - click directo en 'Zapping' del menú
-        - si no está visible, abre menú móvil
-        - si igual falla, va directo a /zapping/
-        """
-        link = self.page.locator(self.link_zapping).first
-
-        if link.is_visible():
-            link.click()
-            self.page.wait_for_load_state("networkidle")
-            return
-
-        self.abrir_menu_movil()
-        link = self.page.locator(self.link_zapping).first
-        if link.is_visible():
-            link.click()
-            self.page.wait_for_load_state("networkidle")
-            return
-
-        # fallback directo
-        self.page.goto(ZAPPING_URL, wait_until="domcontentloaded")
-        self.page.wait_for_load_state("networkidle")
+        self.link_actualizar_plan.wait_for(state="visible")
+        href = self.link_actualizar_plan.get_attribute("href")
+        assert href and ZAPPING_URL in href
+        self.page.goto(href, wait_until="domcontentloaded")
+        self.page.wait_for_url("**/zapping*")

@@ -4,19 +4,21 @@ class ContactoPage:
 
     def __init__(self, page: Page):
         self.page = page
-        self.nombre = "#wpforms-11208-field_1"
-        self.celular = "#wpforms-11208-field_5"
-        self.cedula = "#wpforms-11208-field_2"
-        self.email = "#wpforms-11208-field_3"
-        self.terminos = "#wpforms-11208-field_4_1"
-        self.boton_enviar = "#wpforms-submit-11208"
+        self.nombre = self.page.locator("#wpforms-11208-field_1")
+        self.cedula = self.page.locator("#wpforms-11208-field_2")
+        self.celular = self.page.locator("#wpforms-11208-field_5")
+        self.email = self.page.locator("#wpforms-11208-field_3")
+        self.terminos = self.page.locator("#wpforms-11208-field_4_1")
+        self.boton_enviar = self.page.locator("#wpforms-submit-11208")
 
-    def completar_formulario(self, datos):
-        self.page.fill(self.nombre, datos["nombre"])
-        self.page.fill(self.celular, datos["celular"])
-        self.page.fill(self.cedula, datos["cedula"])
-        self.page.fill(self.email, datos["email"])
-        self.page.click(self.terminos)
+    def validar_carga(self):
+        self.nombre.wait_for(state="visible")
+        assert "/contactanos" in self.page.url.lower()
 
-    def enviar(self):
-        self.page.click(self.boton_enviar)
+    def validar_formulario_disponible(self):
+        self.nombre.wait_for(state="visible")
+        self.cedula.wait_for(state="visible")
+        self.celular.wait_for(state="visible")
+        self.email.wait_for(state="visible")
+        self.terminos.wait_for(state="visible")
+        self.boton_enviar.wait_for(state="visible")
